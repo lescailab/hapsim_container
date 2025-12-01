@@ -1,0 +1,6 @@
+PLINK v1.90b6.21 64-bit (19 Oct 2020)
+PLINK v2.00a3.3LM AVX2 Intel (3 Jun 2022)
+KING 2.3.0 - (c) 2010-2022 Wei-Min Chen
+VCFtools (0.1.17)
+bcftools 1.13
+MapThin (v1.11)
