@@ -19,7 +19,7 @@ ENV PATH $JULIA_PATH/bin:$PATH
 ENV JULIA_GPG 3673DF529D9049477F76B37566E3C7DC03D6E495
 
 # https://julialang.org/downloads/
-ENV JULIA_VERSION 1.6.4
+ENV JULIA_VERSION 1.11.5
 
 RUN set -eux; \
 	\
@@ -83,103 +83,7 @@ RUN set -eux; \
 
 
 # **************************** Install tools ***********************************
-ENV TOOLS_DIR /opt/tools
-ENV DOWNLOAD_DIR /home/Downloads
 
-ENV PLINK_PATH "$TOOLS_DIR/plink"
-ENV PLINK2_PATH "$TOOLS_DIR/plink2"
-ENV KING_PATH "$TOOLS_DIR/king"
-ENV VCFTOOLS_PATH "$TOOLS_DIR/vcftools"
-ENV BCFTOOLS_PATH "$TOOLS_DIR/bcftools"
-ENV MAPTHIN_PATH "$TOOLS_DIR/mapthin"
-
-# Add tools to PATH
-ENV PATH $PLINK_PATH:$PLINK2_PATH:$KING_PATH:$VCFTOOLS_PATH/bin:$BCFTOOLS_PATH/bin:$MAPTHIN_PATH:$PATH
-
-# Setup compression tools
-RUN set -eux; \
-    apt-get update; \
-	apt-get install -y --no-install-recommends \
-        unzip \
-        git \
-        autoconf automake build-essential pkg-config zlib1g-dev cmake \
-        libbz2-dev liblzma-dev
-
-RUN set -eux; \
-# Setup tools directory
-    mkdir -p $TOOLS_DIR; \
-    mkdir -p $DOWNLOAD_DIR; \
-# Setup Plink 1.9
-    echo "Setting up Plink 1.9"; \
-    curl -fL -o $DOWNLOAD_DIR/plink1.zip "http://s3.amazonaws.com/plink1-assets/plink_linux_x86_64_20201019.zip"; \
-    unzip $DOWNLOAD_DIR/plink1.zip -d "$PLINK_PATH"; \
-# Setup Plink2
-    echo "Setting up Plink 2.0"; \
-    curl -fL -o $DOWNLOAD_DIR/plink2.zip "https://s3.amazonaws.com/plink2-assets/plink2_linux_avx2_latest.zip"; \
-    unzip $DOWNLOAD_DIR/plink2.zip -d "$PLINK2_PATH"; \
-# Setup KING
-    echo "Setting up KING"; \
-    curl -fL -o $DOWNLOAD_DIR/king.tar.gz "https://www.kingrelatedness.com/Linux-king.tar.gz"; \
-    mkdir "$KING_PATH"; \
-    tar -xzf $DOWNLOAD_DIR/king.tar.gz -C "$KING_PATH"; \
-# Setup vcftools
-    echo "Setting up vcftools"; \
-    cd "$DOWNLOAD_DIR"; \
-    git clone https://github.com/vcftools/vcftools.git; \
-    cd vcftools; \
-    ./autogen.sh; \
-    ./configure --prefix="$VCFTOOLS_PATH"; \
-    make; \
-    make install; \
-    cd -; \
-# Setup bcftools
-    echo "Setting up bcftools"; \
-    cd "$DOWNLOAD_DIR"; \
-    curl -fL -o bcftools.tar.bz2 https://github.com/samtools/bcftools/releases/download/1.13/bcftools-1.13.tar.bz2; \
-    mkdir -p bcftools; \
-    tar -xf bcftools.tar.bz2 -C "bcftools" --strip-components 1; \
-    cd bcftools; \
-    ./configure --prefix="$BCFTOOLS_PATH"; \
-    make; \
-    make install; \
-    cd -; \
-# Setup mapthin
-	echo "Setting up mapthin"; \
-	cd "$DOWNLOAD_DIR"; \
-	curl --insecure -fL -o mapthin.zip https://www.staff.ncl.ac.uk/richard.howey/mapthin/mapthin-v1.11-linux-x86_64.zip; \
-	unzip mapthin.zip; \
-	mkdir $MAPTHIN_PATH; \
-	mv mapthin-v1.11-linux-x86_64/* $MAPTHIN_PATH; \
-	chmod +x $MAPTHIN_PATH/mapthin; \
-# Setup plinkio
-	echo "Setting up plinkio"; \
-	cd "$DOWNLOAD_DIR"; \
-	curl -fL -o libplinkio.zip https://github.com/mfranberg/libplinkio/archive/refs/tags/v0.9.8.zip; \
-	unzip libplinkio.zip; \
-	cd libplinkio-0.9.8; \
-	mkdir build; \
-	cd build; \
-	cmake ../; \
-	make && make test && make install; \
-# Debug
-    # ls -la $TOOLS_DIR; \
-    # ls -la $PLINK_PATH; \
-    # ls -la $PLINK2_PATH; \
-    # ls -la $KING_PATH; \
-    # ls -la $BCFTOOLS_PATH; \
-    # ls -ls $BCFTOOLS_PATH/bin; \
-    # ls -ls $BCFTOOLS_PATH/libexec; \
-	# ls -la $MAPTHIN_PATH; \
-    \
-# Test
-    # plink --version; \
-    # plink2 --version; \
-    # which king; \
-    # vcftools --version; \
-    # bcftools --version; \
-	# mapthin; \
-# Clean up
-    rm -rf $DOWNLOAD_DIR
 
 
 # ************************* Add INTERVENE scripts *********************************
@@ -200,7 +104,7 @@ RUN ln -s $DATA_DIR .
 # Install Julia packages
 RUN set -eux; \
 	julia --project=$SCRIPT_DIR -e \
-	"using Pkg; Pkg.instantiate(); using Conda; Conda.add(\"bed-reader\")"
+	"using Pkg; Pkg.add("HapSim.jl") "
 
 # Install dependencies for phenotype generation
 RUN set -eux; \
